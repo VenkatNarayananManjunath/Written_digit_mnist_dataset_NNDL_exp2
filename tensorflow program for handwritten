@@ -1,0 +1,33 @@
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.utils import to_categorical
+# Load dataset
+(trainX, trainY), (testX, testY) = mnist.load_data()
+# Reshape to include channel dimension
+trainX = trainX.reshape((trainX.shape[0], 28, 28, 1))
+testX = testX.reshape((testX.shape[0], 28, 28, 1))
+# Normalize pixel values to range [0, 1]
+trainX, testX = trainX / 255.0, testX / 255.0
+# One-hot encode labels
+trainY = to_categorical(trainY)
+testY = to_categorical(testY)
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
+def define_model():
+   model = Sequential([
+       Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 1)),
+       MaxPooling2D((2, 2)),
+       Flatten(),
+       Dense(128, activation='relu'),
+       Dense(10, activation='softmax') # Output layer for 10 classes
+   ])
+   model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+   return model
+model = define_model()
+model.fit(trainX, trainY, epochs=10, batch_size=32, validation_data=(testX, testY))
+loss, accuracy = model.evaluate(testX, testY)
+print(f"Test Accuracy: {accuracy * 100:.2f}%")
+import numpy as np
+# Predict a single image
+sample_image = testX[0].reshape(1, 28, 28, 1)
+prediction = np.argmax(model.predict(sample_image))
+print(f"Predicted Digit: {prediction}")
